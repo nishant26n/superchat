@@ -1,5 +1,6 @@
 import React from "react";
 import firebase from "firebase/compat/app";
+import "./Signin.scss";
 import {
   Container,
   Grid,
@@ -49,7 +50,11 @@ const Signin = () => {
   };
 
   return (
-    <>
+    <div className="sign-in">
+      <div class="bg"></div>
+      <div class="bg bg2"></div>
+      <div class="bg bg3"></div>
+
       <Container>
         <Grid className="mt-page">
           <Row>
@@ -86,7 +91,7 @@ const Signin = () => {
           </Row>
         </Grid>
       </Container>
-    </>
+    </div>
   );
 };
 
