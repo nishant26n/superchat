@@ -6,7 +6,7 @@
         ".write": "$user_id === auth.uid"
       }
     },
-    ".read": false,
-    ".write": false
+    ".read": true,
+    ".write": true
   }
 }

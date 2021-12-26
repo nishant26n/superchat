@@ -34,7 +34,7 @@ const Signin = () => {
     } catch (err) {
       toaster.push(
         <Notification type="error" header="error" duration={4500}>
-          Error signing in
+          {err.message}
         </Notification>,
         { placement: "topCenter" }
       );
@@ -51,9 +51,9 @@ const Signin = () => {
 
   return (
     <div className="sign-in">
-      <div class="bg"></div>
-      <div class="bg bg2"></div>
-      <div class="bg bg3"></div>
+      <div className="bg"></div>
+      <div className="bg bg2"></div>
+      <div className="bg bg3"></div>
 
       <Container>
         <Grid className="mt-page">
