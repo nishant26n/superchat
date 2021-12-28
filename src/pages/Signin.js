@@ -26,14 +26,14 @@ const Signin = () => {
       }
 
       toaster.push(
-        <Notification type="success" duration={4500}>
+        <Notification type="success" duration={4000}>
           Welcome to SuperChat 🙏
         </Notification>,
         { placement: "topCenter" }
       );
     } catch (err) {
       toaster.push(
-        <Notification type="error" header="error" duration={4500}>
+        <Notification type="error" header="error" duration={4000}>
           {err.message}
         </Notification>,
         { placement: "topCenter" }
