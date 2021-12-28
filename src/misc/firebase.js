@@ -3,14 +3,15 @@ import "firebase/compat/auth";
 import "firebase/compat/database";
 
 const config = {
-  apiKey: "AIzaSyApp2idp4Ms24x-pk24xqVU_H9HXDihXYo",
-  authDomain: "chat-web-app-98952.firebaseapp.com",
+  apiKey: "AIzaSyAZc-PHeQ_OBC0TKbCBedqPQXqJc8ay_j0",
+  authDomain: "superchat-ccd98.firebaseapp.com",
   databaseURL:
-    "https://chat-web-app-98952-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "chat-web-app-98952",
-  storageBucket: "chat-web-app-98952.appspot.com",
-  messagingSenderId: "662151121981",
-  appId: "1:662151121981:web:92a3adcb4fbdc77deb2e54",
+    "https://superchat-ccd98-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "superchat-ccd98",
+  storageBucket: "superchat-ccd98.appspot.com",
+  messagingSenderId: "522698057635",
+  appId: "1:522698057635:web:740674540bcb7c76169c16",
+  measurementId: "G-G7KY4BHSDY",
 };
 
 const app = firebase.initializeApp(config);

@@ -19,15 +19,15 @@ const Signin = () => {
       const { additionalUserInfo, user } = await auth.signInWithPopup(provider);
 
       if (additionalUserInfo.isNewUser) {
-        await database.ref(`/profile/${user.uid}`).set({
+        await database.ref(`/profiles/${user.uid}`).set({
           name: user.displayName,
           createdAt: firebase.database.ServerValue.TIMESTAMP,
         });
       }
 
       toaster.push(
-        <Notification type="success" header="success" duration={4500}>
-          Welcome to SuperChat
+        <Notification type="success" duration={4500}>
+          Welcome to SuperChat 🙏
         </Notification>,
         { placement: "topCenter" }
       );
