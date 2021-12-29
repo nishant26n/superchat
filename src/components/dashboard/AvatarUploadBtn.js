@@ -76,6 +76,7 @@ const AvatarUploadBtn = () => {
       await userAvatarRef.set(downloadUrl);
       setIsLoading(false);
 
+      close();
       toaster.push(
         <Notification type="info" duration={4000}>
           Avatar has been uploaded 🤝
