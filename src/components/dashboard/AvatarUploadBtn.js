@@ -1,17 +1,35 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import AvatarEditor from "react-avatar-editor";
 import { Button, Modal, toaster, Notification } from "rsuite";
 import { useModalState } from "../../misc/custom-hook";
+import { storage, database } from "../../misc/firebase";
+import { useProfile } from "../../context/profile.context";
 
 const fileInputTypes = ".png, .jpg, .jpeg";
 
 const acceptedFileTypes = ["image/png", "image/jpeg", "image/pjpeg"];
 const isValidFile = (file) => acceptedFileTypes.includes(file.type);
 
+const getBlob = (canvas) => {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("File process error"));
+      }
+    });
+  });
+};
+
 const AvatarUploadBtn = () => {
   const { isOpen, open, close } = useModalState();
 
+  const { profile } = useProfile();
+
   const [img, setImg] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const avatarEditorRef = useRef();
 
   const onFileInputChange = (ev) => {
     const currFiles = ev.target.files;
@@ -30,6 +48,45 @@ const AvatarUploadBtn = () => {
           </Notification>
         );
       }
+    }
+  };
+
+  const onUploadClick = async () => {
+    const canvas = avatarEditorRef.current.getImageScaledToCanvas();
+
+    setIsLoading(true);
+    try {
+      const blob = await getBlob(canvas);
+
+      const avatarFileRef = storage
+        .ref(`/profiles/${profile.uid}`)
+        .child("avatar");
+
+      const uploadAvatarResult = await avatarFileRef.put(blob, {
+        cacheControl: `public, max-age=${3600 * 24 * 3}`,
+      });
+
+      const downloadUrl = await uploadAvatarResult.ref.getDownloadURL();
+
+      const userAvatarRef = database
+        .ref(`/profiles/${profile.uid}`)
+        .child("avatar");
+
+      await userAvatarRef.set(downloadUrl);
+      setIsLoading(false);
+
+      toaster.push(
+        <Notification type="info" duration={4000}>
+          Avatar has been uploaded 🤝
+        </Notification>
+      );
+    } catch (err) {
+      setIsLoading(false);
+      toaster.push(
+        <Notification type="error" duration={4000}>
+          {err.message} 🤨
+        </Notification>
+      );
     }
   };
 
@@ -58,6 +115,7 @@ const AvatarUploadBtn = () => {
             <div className="d-flex justify-content-center align-items-center h-100">
               {img && (
                 <AvatarEditor
+                  ref={avatarEditorRef}
                   image={img}
                   width={200}
                   height={200}
@@ -70,7 +128,12 @@ const AvatarUploadBtn = () => {
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button block appearance="ghost">
+            <Button
+              block
+              appearance="ghost"
+              onClick={onUploadClick}
+              disabled={isLoading}
+            >
               Upload new Avatar
             </Button>
           </Modal.Footer>
