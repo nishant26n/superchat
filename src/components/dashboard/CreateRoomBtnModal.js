@@ -11,7 +11,7 @@ import {
 import FormGroup from "rsuite/esm/FormGroup";
 import { useModalState } from "../../misc/custom-hook";
 import firebase from "firebase/compat/app";
-import { database } from "../../misc/firebase";
+import { database, auth } from "../../misc/firebase";
 
 const Textarea = React.forwardRef((props, ref) => (
   <Input {...props} as="textarea" ref={ref} />
@@ -49,6 +49,9 @@ const CreateRoomBtnModal = () => {
     const newRoomData = {
       ...formValue,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
+      admins: {
+        [auth.currentUser.uid]: true,
+      },
     };
     try {
       await database.ref("rooms").push(newRoomData);
