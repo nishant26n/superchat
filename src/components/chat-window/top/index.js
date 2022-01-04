@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ButtonToolbar } from "rsuite";
 import { useCurrentRoom } from "../../../context/current-room.context";
 import { useMediaQuery } from "../../../misc/custom-hook";
+import EditRoomBtnDrawer from "./EditRoomBtnDrawer";
 import RoomInfoBtnModal from "./RoomInfoBtnModal";
 
 const ChatTop = () => {
@@ -25,7 +26,9 @@ const ChatTop = () => {
           </Link>
           <span className="text-disappear">{name}</span>
         </h4>
-        <ButtonToolbar className="ws-nowrap">todo</ButtonToolbar>
+        <ButtonToolbar className="ws-nowrap">
+          <EditRoomBtnDrawer />
+        </ButtonToolbar>
       </div>
 
       <div className="d-flex justify-content-between align-items-center">
