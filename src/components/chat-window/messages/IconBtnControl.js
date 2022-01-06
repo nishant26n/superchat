@@ -1,6 +1,5 @@
 import React from "react";
 import { Badge, Whisper, Tooltip, IconButton } from "rsuite";
-import { FaHeart } from "react-icons/fa";
 
 const ConditionalBadge = ({ condition, children }) => {
   return condition ? <Badge content={condition}>{children}</Badge> : children;
@@ -9,7 +8,7 @@ const ConditionalBadge = ({ condition, children }) => {
 const IconBtnControl = ({
   isVisible,
   tooltip,
-  color,
+  iconName,
   onClick,
   badgeContent,
   ...props
@@ -33,7 +32,7 @@ const IconBtnControl = ({
             onClick={onClick}
             circle
             size="xs"
-            icon={<FaHeart color={color} />}
+            icon={iconName}
           />
         </Whisper>
       </ConditionalBadge>

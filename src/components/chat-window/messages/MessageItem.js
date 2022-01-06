@@ -8,6 +8,7 @@ import { useCurrentRoom } from "../../../context/current-room.context";
 import { auth } from "../../../misc/firebase";
 import { useHover, useMediaQuery } from "../../../misc/custom-hook";
 import IconBtnControl from "./IconBtnControl";
+import { FaHeart, FaTrashAlt } from "react-icons/fa";
 
 const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
   const { author, createdAt, text, likes, likeCount } = message;
@@ -59,13 +60,23 @@ const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
         />
 
         <IconBtnControl
-          {...(isLiked ? { color: "red" } : {})}
           isVisible={canShowIcons}
           tooltip="Like this message"
+          iconName={<FaHeart color={isLiked ? "red" : {}} />}
           onClick={() => handleLike(message.id)}
           badgeContent={likeCount}
         />
+
+        {isAuthor && (
+          <IconBtnControl
+            isVisible={canShowIcons}
+            tooltip="Delete this message"
+            iconName={<FaTrashAlt />}
+            onClick={() => handleDelete(message.id)}
+          />
+        )}
       </div>
+
       <div>
         <span className="word-break-all">{text}</span>
       </div>
