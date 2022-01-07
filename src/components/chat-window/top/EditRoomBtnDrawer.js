@@ -50,7 +50,7 @@ const EditRoomBtnDrawer = () => {
       <Button
         className="br-circle"
         size="sm"
-        color="red"
+        color="green"
         appearance="primary"
         onClick={open}
       >

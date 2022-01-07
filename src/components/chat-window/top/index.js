@@ -5,6 +5,7 @@ import { useCurrentRoom } from "../../../context/current-room.context";
 import { useMediaQuery } from "../../../misc/custom-hook";
 import EditRoomBtnDrawer from "./EditRoomBtnDrawer";
 import RoomInfoBtnModal from "./RoomInfoBtnModal";
+import { FaArrowCircleLeft } from "react-icons/fa";
 
 const ChatTop = () => {
   const name = useCurrentRoom((v) => v.name);
@@ -12,9 +13,9 @@ const ChatTop = () => {
   const isMobile = useMediaQuery("(max-width: 992px)");
 
   return (
-    <div>
+    <>
       <div className="d-flex justify-content-between align-items-center">
-        <h4 className="text-disappear d-flex align-items-center">
+        <div className="text-disappear d-flex align-items-center">
           <Link
             to="/"
             className={
@@ -23,9 +24,11 @@ const ChatTop = () => {
                 : "d-none"
             }
           >
-            <i className="fas fa-arrow-left"></i>
+            <FaArrowCircleLeft className="mt-2" size={30} />
           </Link>
-          <span className="text-disappear">{name}</span>
+        </div>
+        <h4 className="text-disappear text-center" style={{ padding: "5px" }}>
+          {name}
         </h4>
         <ButtonToolbar className="ws-nowrap">
           {isAdmin && <EditRoomBtnDrawer />}
@@ -35,7 +38,7 @@ const ChatTop = () => {
       <div className="d-flex justify-content-between align-items-center">
         <RoomInfoBtnModal />
       </div>
-    </div>
+    </>
   );
 };
 
