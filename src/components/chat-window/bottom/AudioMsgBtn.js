@@ -21,7 +21,7 @@ const AudioMsgBtn = ({ afterUpload }) => {
         const snap = await storage
           .ref(`/chat/${chatId}`)
           .child(`audio_${Date.now()}.mp3`)
-          .put(data.blobFile, {
+          .put(data.blob, {
             cacheControl: `public, max-age=${3600 * 24 * 3}`,
           });
 
@@ -30,6 +30,7 @@ const AudioMsgBtn = ({ afterUpload }) => {
           name: snap.metadata.name,
           url: await snap.ref.getDownloadURL(),
         };
+
         setIsUploading(false);
         afterUpload([file]);
       } catch (err) {

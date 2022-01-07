@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Notification, toaster } from "rsuite";
-import { auth, database } from "../../../misc/firebase";
+import { auth, database, storage } from "../../../misc/firebase";
 import { transformToArrWithId } from "../../../misc/helper";
 import MessageItem from "./MessageItem";
 
@@ -79,7 +79,7 @@ const Messages = () => {
   }, []);
 
   const handleDelete = useCallback(
-    async (msgId) => {
+    async (msgId, file) => {
       if (!window.confirm("Delete this message?")) {
         return;
       }
@@ -109,11 +109,24 @@ const Messages = () => {
           </Notification>
         );
       } catch (err) {
-        toaster.push(
+        return toaster.push(
           <Notification type="error" duration={4000}>
             {err.message} 🤨
           </Notification>
         );
+      }
+
+      if (file) {
+        try {
+          const fileRef = storage.refFromURL(file.url);
+          await fileRef.delete();
+        } catch (err) {
+          toaster.push(
+            <Notification type="error" duration={4000}>
+              {err.message} 🤨
+            </Notification>
+          );
+        }
       }
     },
     [chatId, messages]
