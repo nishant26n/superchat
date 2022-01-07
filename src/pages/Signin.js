@@ -27,7 +27,7 @@ const Signin = () => {
 
       toaster.push(
         <Notification type="success" duration={4000}>
-          Welcome to SuperChat 🙏
+          Welcome to SuperChat ❤️
         </Notification>,
         { placement: "topCenter" }
       );

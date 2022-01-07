@@ -60,7 +60,9 @@ const EditRoomBtnDrawer = () => {
       <Drawer full={isMobile} open={isOpen} onClose={close} placement="right">
         <Drawer.Header>
           <Drawer.Title>Edit Room</Drawer.Title>
-          <Button onClick={close}>Close</Button>
+          <Button onClick={close} color="red" appearance="primary">
+            Close
+          </Button>
         </Drawer.Header>
         <Drawer.Body>
           <EditableInput
