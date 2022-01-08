@@ -15,7 +15,7 @@ const isOnlineForDatabase = {
 const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
-  const [profile, setProfile] = useState("");
+  const [profile, setProfile] = useState(null);
   const [isloading, setIsLoading] = useState(true);
 
   useEffect(() => {
