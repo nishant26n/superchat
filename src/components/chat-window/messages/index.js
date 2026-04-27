@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
-import { Button, Notification, toaster } from "rsuite";
+import { Button, Modal, Notification, toaster } from "rsuite";
 import { auth, database, storage } from "../../../misc/firebase";
 import { groupBy, transformToArrWithId } from "../../../misc/helper";
 import MessageItem from "./MessageItem";
@@ -9,17 +16,20 @@ const PAGE_SIZE = 15;
 const messageRef = database.ref("/messages");
 
 function shouldScrollToBottom(node, threshold = 30) {
-  const percntage =
+  const percentage =
     (100 * node.scrollTop) / (node.scrollHeight - node.clientHeight) || 0;
 
-  return percntage > threshold;
+  return percentage > threshold;
 }
 
 const Messages = () => {
   const { chatId } = useParams();
   const [messages, setMessages] = useState(null);
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { msgId, file }
   const selfRef = useRef();
+  // Track whether the next messages update should scroll to bottom
+  const shouldScrollRef = useRef(true);
 
   const isChatEmpty = messages && messages.length === 0;
   const canShowMessages = messages && messages.length > 0;
@@ -36,10 +46,7 @@ const Messages = () => {
         .on("value", (snap) => {
           const data = transformToArrWithId(snap.val());
           setMessages(data);
-
-          if (shouldScrollToBottom(node)) {
-            node.scrollTop = node.scrollHeight;
-          }
+          shouldScrollRef.current = shouldScrollToBottom(node);
         });
 
       setLimit((p) => p + PAGE_SIZE);
@@ -51,27 +58,32 @@ const Messages = () => {
     const node = selfRef.current;
     const oldHeight = node.scrollHeight;
 
+    shouldScrollRef.current = false; // loading more — don't jump to bottom
     loadMessages(limit);
 
-    setTimeout(() => {
+    // Restore relative scroll position after new messages are injected at the top
+    requestAnimationFrame(() => {
       const newHeight = node.scrollHeight;
       node.scrollTop = newHeight - oldHeight;
-    }, 200);
+    });
   }, [loadMessages, limit]);
 
   useEffect(() => {
-    const node = selfRef.current;
-
+    shouldScrollRef.current = true; // new chat — scroll to bottom
     loadMessages();
-
-    setTimeout(() => {
-      node.scrollTop = node.scrollHeight;
-    }, 200);
 
     return () => {
       messageRef.off("value");
     };
   }, [loadMessages]);
+
+  // useLayoutEffect fires synchronously after DOM paint — reliable scroll
+  useLayoutEffect(() => {
+    const node = selfRef.current;
+    if (node && shouldScrollRef.current) {
+      node.scrollTop = node.scrollHeight;
+    }
+  }, [messages]);
 
   const handleAdmin = useCallback(
     async (uid) => {
@@ -103,9 +115,9 @@ const Messages = () => {
 
   const handleLike = useCallback(async (msgId) => {
     const { uid } = auth.currentUser;
-    const messageRef = database.ref(`messages/${msgId}`);
+    const msgRef = database.ref(`messages/${msgId}`);
 
-    await messageRef.transaction((msg) => {
+    await msgRef.transaction((msg) => {
       if (msg) {
         if (msg.likes && msg.likes[uid]) {
           msg.likeCount -= 1;
@@ -124,61 +136,66 @@ const Messages = () => {
     });
   }, []);
 
-  const handleDelete = useCallback(
-    async (msgId, file) => {
-      if (!window.confirm("Delete this message?")) {
-        return;
-      }
+  // Opens confirmation modal instead of blocking window.confirm()
+  const handleDelete = useCallback((msgId, file) => {
+    setDeleteTarget({ msgId, file });
+  }, []);
 
-      const isLast = messages[messages.length - 1].id === msgId;
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    const { msgId, file } = deleteTarget;
+    setDeleteTarget(null);
 
-      const updates = {};
+    const isLast = messages[messages.length - 1].id === msgId;
 
-      updates[`/messages/${msgId}`] = null;
+    const updates = {};
 
-      if (isLast && messages.length > 1) {
-        updates[`/rooms/${chatId}/lastMessage`] = {
-          ...messages[messages.length - 2],
-          msgId: messages[messages.length - 2].id,
-        };
-      }
+    updates[`/messages/${msgId}`] = null;
 
-      if (isLast && messages.length === 1) {
-        updates[`/rooms/${chatId}/lastMessage`] = null;
-      }
+    if (isLast && messages.length > 1) {
+      updates[`/rooms/${chatId}/lastMessage`] = {
+        ...messages[messages.length - 2],
+        msgId: messages[messages.length - 2].id,
+      };
+    }
 
+    if (isLast && messages.length === 1) {
+      updates[`/rooms/${chatId}/lastMessage`] = null;
+    }
+
+    try {
+      await database.ref().update(updates);
+      toaster.push(
+        <Notification type="info" duration={4000}>
+          Message has been deleted 🥲
+        </Notification>
+      );
+    } catch (err) {
+      toaster.push(
+        <Notification type="error" duration={4000}>
+          {err.message} 🤨
+        </Notification>
+      );
+    }
+
+    if (file) {
       try {
-        await database.ref().update(updates);
-        toaster.push(
-          <Notification type="error" duration={4000}>
-            Message has been deleted 🥲
-          </Notification>
-        );
+        const fileRef = storage.refFromURL(file.url);
+        await fileRef.delete();
       } catch (err) {
-        return toaster.push(
+        toaster.push(
           <Notification type="error" duration={4000}>
             {err.message} 🤨
           </Notification>
         );
       }
+    }
+  }, [chatId, deleteTarget, messages]);
 
-      if (file) {
-        try {
-          const fileRef = storage.refFromURL(file.url);
-          await fileRef.delete();
-        } catch (err) {
-          toaster.push(
-            <Notification type="error" duration={4000}>
-              {err.message} 🤨
-            </Notification>
-          );
-        }
-      }
-    },
-    [chatId, messages]
-  );
+  // Memoized — only recalculates when messages array changes
+  const renderedMessages = useMemo(() => {
+    if (!canShowMessages) return null;
 
-  const renderMessages = () => {
     const groups = groupBy(messages, (item) =>
       new Date(item.createdAt).toDateString()
     );
@@ -206,20 +223,45 @@ const Messages = () => {
     });
 
     return items;
-  };
+  }, [messages, canShowMessages, handleAdmin, handleLike, handleDelete]);
 
   return (
-    <ul ref={selfRef} className="msg-list custom-scroll">
-      {messages && messages.length >= PAGE_SIZE && (
-        <li className="text-center mt-2 mb-2">
-          <Button onClick={onLoadMore} color="green" appearance="primary">
-            Load more
+    <>
+      {/* Non-blocking delete confirmation modal */}
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        size="xs"
+      >
+        <Modal.Header>
+          <Modal.Title>Delete message</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this message? This action cannot be
+          undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={confirmDelete} appearance="primary" color="red">
+            Delete
           </Button>
-        </li>
-      )}
-      {isChatEmpty && <li>No messages yet</li>}
-      {canShowMessages && renderMessages()}
-    </ul>
+          <Button onClick={() => setDeleteTarget(null)} appearance="subtle">
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <ul ref={selfRef} className="msg-list custom-scroll">
+        {messages && messages.length >= PAGE_SIZE && (
+          <li className="text-center mt-2 mb-2">
+            <Button onClick={onLoadMore} color="green" appearance="primary">
+              Load more
+            </Button>
+          </li>
+        )}
+        {isChatEmpty && <li>No messages yet</li>}
+        {renderedMessages}
+      </ul>
+    </>
   );
 };
 

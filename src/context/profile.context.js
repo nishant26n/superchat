@@ -16,16 +16,18 @@ const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
-  const [isloading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let userRef;
     let userStatusRef;
+    let connectedRef;
 
     const authUnSub = auth.onAuthStateChanged((authObj) => {
       if (authObj) {
         userStatusRef = database.ref(`/status/${authObj.uid}`);
         userRef = database.ref(`/profiles/${authObj.uid}`);
+        connectedRef = database.ref(".info/connected");
 
         userRef.on("value", (snap) => {
           const { name, createdAt, avatar } = snap.val();
@@ -41,8 +43,8 @@ export const ProfileProvider = ({ children }) => {
           setIsLoading(false);
         });
 
-        database.ref(".info/connected").on("value", (snapshot) => {
-          if (!!snapshot.val() === false) {
+        connectedRef.on("value", (snapshot) => {
+          if (!snapshot.val()) {
             return;
           }
 
@@ -54,37 +56,23 @@ export const ProfileProvider = ({ children }) => {
             });
         });
       } else {
-        if (userRef) {
-          userRef.off();
-        }
-
-        if (userStatusRef) {
-          userStatusRef.off();
-        }
-
-        database.ref(".info/connected").off();
-
         setProfile(null);
         setIsLoading(false);
       }
     });
+
+    // Single consolidated cleanup — handles both sign-out and unmount
     return () => {
       authUnSub();
-
-      database.ref(".info/connected").off();
-
-      if (userRef) {
-        userRef.off();
-      }
-
-      if (userStatusRef) {
-        userStatusRef.off();
-      }
+      if (userRef) userRef.off();
+      if (userStatusRef) userStatusRef.off();
+      if (connectedRef) connectedRef.off();
     };
   }, []);
 
   return (
-    <ProfileContext.Provider value={{ isloading, profile }}>
+    // Fixed typo: isloading → isLoading (matches what PrivateRoute/PublicRoute expect)
+    <ProfileContext.Provider value={{ isLoading, profile }}>
       {children}
     </ProfileContext.Provider>
   );

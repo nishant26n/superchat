@@ -1,6 +1,6 @@
-import React from "react";
+import React, { memo, useEffect } from "react";
 import { Badge, Tooltip, Whisper } from "rsuite";
-import { usePresence } from "../misc/custom-hook";
+import { usePresenceContext } from "../context/presence.context";
 
 const getColor = (presence) => {
   if (!presence) return "gray";
@@ -25,12 +25,19 @@ const getText = (presence) => {
 };
 
 const PresenceDot = ({ uid }) => {
-  const presence = usePresence(uid);
+  // Subscribe this uid to the shared context (no-op if already subscribed)
+  const { presenceMap, subscribeToUID } = usePresenceContext();
+
+  useEffect(() => {
+    subscribeToUID(uid);
+  }, [uid, subscribeToUID]);
+
+  const presence = presenceMap[uid] || null;
 
   return (
     <Whisper
       placement="top"
-      controlId="control-id-hover"
+      controlId={`presence-${uid}`}
       trigger="hover"
       speaker={<Tooltip>{getText(presence)}</Tooltip>}
     >
@@ -42,4 +49,4 @@ const PresenceDot = ({ uid }) => {
   );
 };
 
-export default PresenceDot;
+export default memo(PresenceDot);

@@ -32,7 +32,7 @@ const ChatBottom = () => {
   }, []);
 
   const onSendClick = async () => {
-    if (input.trim === "") {
+    if (input.trim() === "") {
       return;
     }
 
@@ -64,7 +64,7 @@ const ChatBottom = () => {
   };
 
   const onKeyDown = (ev) => {
-    if (ev.keyDown === 13) {
+    if (ev.key === 'Enter') {
       ev.preventDefault();
       onSendClick();
     }
