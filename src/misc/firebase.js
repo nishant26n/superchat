@@ -4,15 +4,14 @@ import "firebase/compat/database";
 import "firebase/compat/storage";
 
 const config = {
-  apiKey: "AIzaSyAZc-PHeQ_OBC0TKbCBedqPQXqJc8ay_j0",
-  authDomain: "superchat-ccd98.firebaseapp.com",
-  databaseURL:
-    "https://superchat-ccd98-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "superchat-ccd98",
-  storageBucket: "superchat-ccd98.appspot.com",
-  messagingSenderId: "522698057635",
-  appId: "1:522698057635:web:740674540bcb7c76169c16",
-  measurementId: "G-G7KY4BHSDY",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = firebase.initializeApp(config);

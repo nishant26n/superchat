@@ -21,13 +21,19 @@ export const useMediaQuery = (query) => {
 
     const listener = (evt) => setMatches(evt.matches);
 
-    queryList.addListener(listener);
-    return () => queryList.removeListener(listener);
+    queryList.addEventListener('change', listener);
+    return () => queryList.removeEventListener('change', listener);
   }, [query]);
 
   return matches;
 };
 
+/**
+ * @deprecated Use PresenceContext via usePresenceContext() instead.
+ * This hook opens a new Firebase listener per component instance which
+ * can cause N+1 listener problems when used inside lists.
+ * See: src/context/presence.context.js
+ */
 export function usePresence(uid) {
   const [presence, setPresence] = useState(null);
 

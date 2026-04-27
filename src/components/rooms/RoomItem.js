@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import TimeAgo from "timeago-react";
 import ProfileAvatar from "../dashboard/ProfileAvatar";
 
@@ -33,8 +33,8 @@ const RoomItem = ({ room }) => {
             </div>
 
             <div className="text-disappear ml-2">
-              <div className="italic">{lastMessage.author.name}</div>
-              <span>{lastMessage.text || lastMessage.file.name}</span>
+              <div className="italic">{lastMessage?.author?.name}</div>
+              <span>{lastMessage?.text || lastMessage?.file?.name}</span>
             </div>
           </>
         ) : (
@@ -45,4 +45,4 @@ const RoomItem = ({ room }) => {
   );
 };
 
-export default RoomItem;
+export default memo(RoomItem);
